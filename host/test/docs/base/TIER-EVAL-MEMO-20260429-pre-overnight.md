@@ -171,9 +171,9 @@ will resolve it. No action requested pre-overnight.
 
 Operational items (not research-team scope, listed for completeness):
 
-- Need `host/test/scripts/thermal-watch.sh` running in a separate terminal
-  during the sweep — without it `thermal_status` falls back to drift-only,
-  which is exactly the signal in question (1).
+- ~~Need `host/test/scripts/thermal-watch.sh` running in a separate terminal
+  during the sweep~~ — thermal layer cut 2026-05-04 (CODE-REVIEW §1.5.2);
+  no longer required. Memo concern (1) is moot post-cut.
 - Need ~10h on the M5 Max MBP with no competing heavy compute. Cleanup
   trap restores tier-64 plist on exit.
 - The kickoff command is one line:

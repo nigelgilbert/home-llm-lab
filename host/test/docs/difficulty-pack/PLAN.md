@@ -46,7 +46,7 @@ Source memo: [`memos/n8-confirm-vs-baseline.md`](memos/n8-confirm-vs-baseline.md
 | Axis scope | Existing 5 coding axes only at higher difficulty | Productivity is Sprint 3-gated on grader calibration; library-API as a new axis would require npm deps in container (against design) |
 | Oracle type | `public_verifier` only | All 26 existing tests use this; rubric/judge/hidden-holdout deferred to Sprints 3/4 |
 | Container constraints | Node stdlib + `node:test` + `node:assert/strict` only | The container is deliberately npm-free per `Dockerfile` ("Zero npm dependencies"). All ports must hand-translate to `node:assert/strict`, not import Jest/Mocha |
-| Live-sweep coexistence | Steps 1–6, 8, 10 (chip-independent authoring) MAY proceed while another sweep holds the chip; steps 7 + 9 (pilot/rerun pilot) MUST wait | A live sweep was in flight at proposal time. Any GPU-touching step interferes; any edit to `lib/*.js`, `lib/model_configs.json`, `scripts/run-overnight-screen.sh`, plist configs, `thermal-watch.sh`, or `host/test/.claw-runtime/` interferes. New `host/test/__tests__/tier-eval/<id>.test.js` files are NOT discovered until a sweep launches, so authoring is safe. |
+| Live-sweep coexistence | Steps 1–6, 8, 10 (chip-independent authoring) MAY proceed while another sweep holds the chip; steps 7 + 9 (pilot/rerun pilot) MUST wait | A live sweep was in flight at proposal time. Any GPU-touching step interferes; any edit to `lib/*.js`, `lib/model_configs.json`, `scripts/run-overnight-screen.sh`, plist configs, or `host/test/.claw-runtime/` interferes. New `host/test/__tests__/tier-eval/<id>.test.js` files are NOT discovered until a sweep launches, so authoring is safe. |
 
 ---
 

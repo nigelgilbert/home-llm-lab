@@ -20,10 +20,9 @@
 # pattern is acceptable — see plan §4 "Allowed conclusions."
 #
 # Pre-flight (operator):
-#   1. Start `host/test/scripts/thermal-watch.sh` in another terminal.
-#   2. Confirm the bridge is up and the model GGUFs for all requested
+#   1. Confirm the bridge is up and the model GGUFs for all requested
 #      tiers are on disk (this script's preflight checks them).
-#   3. Confirm the working tree is at the SHA you want recorded as
+#   2. Confirm the working tree is at the SHA you want recorded as
 #      harness_version — no rebuilds mid-sweep.
 #
 # Usage:
@@ -176,18 +175,6 @@ for t in $EVAL_TIERS; do
     || err "tier ${t}GB: model_config_id '$cfg_id' missing from lib/model_configs.json"
 done
 
-# Friendly reminder — thermal-watch is silent and easy to forget.
-HINT_PATH="$TEST_DIR/.claw-runtime/.thermal-hint.json"
-if [ ! -f "$HINT_PATH" ]; then
-  log ""
-  log "WARNING: $HINT_PATH not present."
-  log "         Without thermal-watch.sh running in a separate terminal, every"
-  log "         row's thermal_status will fall back to throughput-drift only"
-  log "         (clean baseline + drift detection still works, but the pmset"
-  log "         hint is the load-bearing signal)."
-  log ""
-fi
-
 # ---- cleanup: always restore production (64GB) plist on exit ----
 # Skipped under DRY_RUN — we never touched the plist, so don't re-bootstrap.
 cleanup() {
@@ -257,7 +244,6 @@ docker run --rm \
   echo "- Reps per tier: $EVAL_REPS"
   echo "- Harness git SHA: $GIT_SHA"
   echo "- Registry: $REGISTRY_PATH"
-  echo "- Hint file: $([ -f "$HINT_PATH" ] && echo "present" || echo "MISSING — thermal_status will be throughput-drift only")"
   echo "- Order: rep-outer × tier-middle × test-inner (cheap interleave)"
   echo ""
 } > "$RESULTS_FILE"

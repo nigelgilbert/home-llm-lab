@@ -39,14 +39,6 @@
 //   - oracle_type     → @manifest header
 //   - start/end_time  → run_summary.json
 //   - terminal_status, passed → run_summary.json + assertion_result.json
-//   - thermal_status         → captureThermalStatus at harvest time. NOTE:
-//                              pmset hint reflects harvest time, not run
-//                              time. For overnight sweeps harvested hours
-//                              later, the hint will be stale and the column
-//                              will read `unknown`. Treat as `unknown` rather
-//                              than re-deriving from drift (Sprint 1.12).
-//   - thermal_drift_advisory → captureThroughputAdvisory over the run's
-//                              iterations.jsonl. Always derivable post-hoc.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -183,7 +175,7 @@ function main() {
     if (result.status === 'ok') {
       ok += 1;
       if (opts.dryRun) {
-        console.log(`  ok    ${runId} → ${result.row.test_id} ${result.row.terminal_status} thermal=${result.row.thermal_status}`);
+        console.log(`  ok    ${runId} → ${result.row.test_id} ${result.row.terminal_status}`);
       } else {
         const target = opts.registryPath
           ? { registryPath: opts.registryPath }

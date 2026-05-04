@@ -24,7 +24,9 @@ Audit target is **maintenance surface area** (schema fields, code paths, doc dri
 
 ## 1.5.2 — Thermal-watch (pmset hint + drift advisory)
 
-**Where:** [scripts/thermal-watch.sh](../../scripts/thermal-watch.sh), [lib/telemetry.js](../../lib/telemetry.js) (`captureThermalStatus`, `captureThroughputAdvisory`), `thermal_status` + `thermal_drift_advisory` columns.
+**Status (2026-05-04): executed.** Cut shipped — `scripts/thermal-watch.sh` and `lib/telemetry.js` deleted, schema columns removed, runbook references stripped. Section retained as the rationale of record.
+
+**Where (pre-cut):** `scripts/thermal-watch.sh`, `lib/telemetry.js` (`captureThermalStatus`, `captureThroughputAdvisory`), `thermal_status` + `thermal_drift_advisory` columns.
 **Signal so far:** 0/650 `pmset_contaminated` rows; 19–31% drift-advisory rate, never used to drive a decision.
 **Operator context:** lab runs 24/7 under an external fan; thermal headroom is hardware-managed. Software layer is redundant.
 

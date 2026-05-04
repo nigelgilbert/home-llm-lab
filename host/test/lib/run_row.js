@@ -1,8 +1,8 @@
 // Sprint 0 sign-off bridge: assemble a run-registry row from a claw run,
 // then validate + append it. Closes sign-off criteria 1 (a single run lands
 // in the registry with all mandatory fields populated) and 2 (the row
-// carries `thermal_status` + a resolvable `model_config_id`) without
-// duplicating logic across each tier-eval test file.
+// carries a resolvable `model_config_id`) without duplicating logic across
+// each tier-eval test file.
 //
 // Inputs:
 //   - clawResult: the object returned by runClaw() in lib/claw.js (has runId,
@@ -18,11 +18,9 @@
 // Behavior:
 //   - Reads assertion_result.json + run_summary.json + iterations.jsonl from
 //     the run sidecar to populate `passed`, `terminal_status`, `start_time`,
-//     `end_time`, `trace_artifact_uri`, and the throughput-drift signal.
+//     `end_time`, and `trace_artifact_uri`.
 //   - Resolves model_config_id via lib/model_config.js and denormalizes
 //     model_id, quantization, context_limit, sampler_config_id onto the row.
-//   - Captures thermal_status via lib/telemetry.js (pmset hint + throughput
-//     drift, combined). Status is `unknown` if no hint file is present.
 //   - Validates against run_registry.schema.json; throws RegistryValidationError
 //     on any failure (caller decides whether to drop the row or rerun).
 //
@@ -34,7 +32,6 @@ import path from 'node:path';
 
 import { appendRow, validateRow, REGISTRY_PATH, RegistryValidationError } from './registry.js';
 import { resolveConfig } from './model_config.js';
-import { captureThermalStatus, captureThroughputAdvisory } from './telemetry.js';
 
 const TERMINAL_STATUS_ALLOWED = new Set(['done', 'error', 'timeout', 'interrupted', 'harness_error']);
 
@@ -70,13 +67,7 @@ export function assembleRow(clawResult, ctx) {
   // lib/model_configs.json by default.
   const config = resolveConfig(ctx.model_config_id, { manifestPath: ctx.manifestPath });
 
-  // Sprint 1.12: thermal_status comes from pmset only. Drift is preserved as
-  // a separate advisory boolean column rather than an inclusion-gating signal.
   const iterRecords = readIterationsJsonl(clawResult.iterationsPath);
-  const thermalHint = captureThermalStatus({ now: ctx.now });
-  const driftAdvisory = captureThroughputAdvisory(iterRecords);
-  const thermal_status = thermalHint.status;
-  const thermal_drift_advisory = !!driftAdvisory.advisory;
 
   // Pull `passed` and timestamps from sidecar artifacts. assertion_result.json
   // is written by tier-eval tests via writeAssertionResult; its `passed` field
@@ -115,8 +106,6 @@ export function assembleRow(clawResult, ctx) {
     terminal_status,
     passed,
     harness_error: ctx.harness_error ?? null,
-    thermal_status,
-    thermal_drift_advisory,
     iters_count: iterRecords.length,
     trace_artifact_uri: clawResult.runDir ?? null,
     screening_only: ctx.screening_only ?? (ctx.run_kind === 'overnight_screen'),

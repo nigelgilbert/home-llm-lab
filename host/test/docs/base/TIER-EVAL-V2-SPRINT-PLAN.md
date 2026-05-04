@@ -104,9 +104,9 @@ This iteration ships five things, in order:
 | # | Item | Initial concern |
 |---|---|---|
 | 1.5.1 | 4-state `canonical_status` enum | Could be 2-state + free-text `provenance_note`. Only meaningful if downstream tooling branches on the 4 states. |
-| 1.5.2 | Thermal-watch (`pmset` hint + drift advisory) | 0/650 pmset_contaminated rows in 1.18; lab runs 24/7 under external fan. **Verdict: cut.** |
+| 1.5.2 | Thermal-watch (`pmset` hint + drift advisory) | 0/650 pmset_contaminated rows in 1.18; lab runs 24/7 under external fan. **Verdict: cut. Executed 2026-05-04.** |
 | 1.5.3 | `expected-attempts.mjs` plan-vs-diff layer | Used and earning keep; verify no dead paths. |
-| 1.5.4 | Telemetry library split (`captureThermalStatus` / `captureThroughputAdvisory`) | Couples to 1.5.2; cut as part of same follow-on. |
+| 1.5.4 | Telemetry library split (`captureThermalStatus` / `captureThroughputAdvisory`) | Couples to 1.5.2; cut as part of same follow-on. **Executed 2026-05-04.** |
 
 **Retained without review entry:** 3-schema split, Stage 0–4 funnel memo, hidden-holdout memo, productivity-grader memo. Maintenance cost ≈ 0; locking value real.
 
@@ -223,7 +223,7 @@ Total: ~5–6 weeks if 3+4 overlap. §9.3 caveat: `n=40` is a starting point, no
 | 0.4 | 35 tier-eval manifest headers | **done** — `/tmp/insert_manifests.py` (idempotent). All 35 validate. Distribution: primary_axis = spec_precision 12 / convergence 7 / tool_discipline 5 / stateful_logic 5 / multi_file_context 4 / local_usability 1 / productivity 1 (only `prose-quality` — confirms §2.2's gap). Suite: B 32, A 2 (`latency`, `tool-discipline`), C 1 (`long-horizon-bugs`). Oracle: public_verifier 33, rubric 2. |
 | 0.5 | `historical_bucketing.csv` | **done** — 9 rows. 120-row prod CSV `legacy-compatible` (assumes `hardware_tier=64`, `oracle_type=public_verifier`, `thermal_status=unknown`, backfilled `model_config_id`). 2026-04-28 archive `legacy-asterisked`. W4 indices + 0-row partial-sweep `excluded`. ~351 `.claw-runtime/` dirs `legacy-compatible`. |
 | 0.6 | EVAL-DESIGN addendum | **done** — codifies two-stage screen-then-confirm, 25 pp + 80% Wilson rule, seven discrimination labels (incl. `provisional_discriminator`), power-derived-N for admission, prohibition on aggregate scores externally. Existing eight-rules section unchanged. |
-| 0.7 | Thermal telemetry | **done (library-only)** — `lib/telemetry.js` (`captureThermalStatus`, `captureThroughputSignal`). Host: `scripts/thermal-watch.sh` polls `pmset -g therm` once/sec, sudo-free. Wiring into row assembly deferred to Sprint 1. |
+| 0.7 | Thermal telemetry | **done (library-only), then cut 2026-05-04** — built and shipped through 1.18; cut per CODE-REVIEW §1.5.2 after 0/650 contamination signal. Schema columns + `lib/telemetry.js` + `scripts/thermal-watch.sh` removed; thermal layer no longer exists. |
 | 0.8 | Hidden-holdout policy | **done** — `docs/HIDDEN-HOLDOUT-POLICY.md`. Storage `host/test/__tests__/tier-eval-hidden/` (gitignored), naming `<public_test_id>-h`, quarterly rotation, ≥2 per-axis reserve, retire-on-suspicion, no-leak reporting, Sprint-4 Stage-3 contract (visible warning + `admission_status=skipped` if empty — silent passes forbidden). No holdouts yet. |
 | 0.9 | Productivity-grader notes | **moved to research/** (2026-05-01) — `research/productivity-grader-notes.md`. Not commitment material; re-derive when a real productivity-grading need arises. |
 
@@ -263,7 +263,7 @@ Total: ~5–6 weeks if 3+4 overlap. §9.3 caveat: `n=40` is a starting point, no
 
 **Sprint 1 entry criteria for the real overnight (met 2026-04-29):**
 
-- `thermal-watch.sh` running in separate terminal during sweep.
+- ~~`thermal-watch.sh` running in separate terminal during sweep.~~ (Layer cut 2026-05-04 — no longer applicable.)
 - Frozen `--ctx` JSON per tier:
   ```json
   { "run_kind": "overnight_screen", "hardware_tier": 16, "memory_gb": 16,

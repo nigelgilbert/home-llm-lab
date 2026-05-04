@@ -819,6 +819,8 @@ This lets R&D answer targeted questions:
 
 ## 13. Thermal and environmental controls
 
+> **Status (2026-05-04): superseded.** The thermal layer described here was implemented through Sprint 1.18 and then removed (CODE-REVIEW §1.5.2): 0/650 contamination signal across the deep n=8 sweep, lab runs 24/7 under an external fan, hardware-managed headroom. `thermal_status` and `thermal_drift_advisory` no longer exist as registry columns; `lib/telemetry.js` and `scripts/thermal-watch.sh` have been deleted. This section is retained as design history. Tripwire to restore: anomalous tokens/sec traceable to thermal cause we can't otherwise explain.
+
 Thermal control matters most for latency, throughput, and user-facing cost metrics. It may also affect model output in configurations where nondeterminism or timing-dependent scheduling affects sampling.
 
 ### 13.1 Minimum telemetry

@@ -150,21 +150,6 @@
       "type": ["string", "null"],
       "description": "Typed error category if terminal_status indicates a harness-side problem (e.g. `bridge_unreachable`, `assertion_emit_failed`)."
     },
-    "thermal_status": {
-      "type": "string",
-      "enum": [
-        "clean",
-        "warning",
-        "pmset_contaminated",
-        "unknown"
-      ],
-      "description": "Thermal flag from the pmset sidecar (Sprint 0.7 hook, Sprint 1.12 split). Sourced exclusively from the pmset hint file post-1.12 — throughput-drift no longer escalates this column. `pmset_contaminated` rows must be excluded from clean latency/throughput comparisons; rerun if pass/fail is suspect or the row is part of an admission gate."
-    },
-    "thermal_drift_advisory": {
-      "type": "boolean",
-      "default": false,
-      "description": "Sprint 1.12 advisory column. True when the throughput-drift signal (median tokens/sec drop, first-third → final-third) crossed the warning threshold (default 25%). Informational diagnostic — does NOT gate row inclusion. Sprint 2's matrix may use this as warmup-pattern context but should not exclude rows on it alone."
-    },
     "iters_count": {
       "type": "integer",
       "minimum": 0,

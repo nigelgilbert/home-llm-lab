@@ -139,7 +139,7 @@ Working rules of thumb:
 | `likely_floor` | Pass rate ≤ 0.05 across all tiers/configs in screening; confirmation pending. | Provisional only — do not move to Layer D until confirmed. |
 | `noisy_diagnostic` | Useful traces but unstable pass rate even at confirmatory N. | Keep for R&D; exclude from leaderboard/admission summaries. |
 | `harness_contaminated` | Infrastructure/tooling failures dominate. | Quarantine until the harness issue is fixed; do not aggregate. |
-| `thermal_contaminated` | Latency/throughput distorted by heat per Sprint 0.7 telemetry. | Exclude from clean latency comparisons; rerun if pass/fail itself is suspect. |
+| ~~`thermal_contaminated`~~ | _Removed 2026-05-04 per CODE-REVIEW §1.5.2 — 0/650 contamination signal across n=8 sweep; lab runs under external fan, hardware-managed headroom. No longer a label._ | — |
 
 The screen-stage labels are `*_candidate` versions of the same set
 (`core_discriminator_candidate`, `likely_ceiling`, etc.) and never become

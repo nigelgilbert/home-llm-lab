@@ -25,7 +25,6 @@
 # Hard preconditions (checked by run-overnight-screen.sh):
 #   - bridge healthy at http://127.0.0.1:4000
 #   - llama-server llama-server image present
-#   - thermal-watch.sh running in a separate terminal (warned if missing)
 #
 # Soft conventions:
 #   - Operator runs cycles serially: cycle 1 → review → cycle 2 → review →

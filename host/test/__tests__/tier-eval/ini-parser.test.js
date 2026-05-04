@@ -15,6 +15,33 @@
  * }
  */
 
+// What:  Implement parseIni(text) — a line-by-line INI-style config parser.
+//        Top-level keys live under the empty-string section ''. Section
+//        headers must be a strict bracketed line (no trailing junk).
+//        Comments are ';' or '#' as the first non-whitespace character only.
+//        Quoted values strip MATCHED double quotes (preserving internal
+//        whitespace, ';', '#', and '='); unmatched quotes are kept verbatim.
+//        Only the FIRST '=' on a line splits key from value. Section reentry
+//        merges into the existing section object; later assignments overwrite.
+//        CRLF accepted; malformed lines are silently ignored.
+//
+// Why:   Suspected-noisy cell, saturation-defense in progress (c21 N=3:
+//        ~5/noisy/4 — t32 number compromised by the bridge SSE deadlock
+//        documented in usability-pack/memos/bridge-sse-deadlock.md, true
+//        saturation is low). Two saturation defenses are load-bearing:
+//        1) Edges added cycle-2 (unmatched-quote, whitespace-only-value,
+//           internal-whitespace-in-quoted-value, section-with-spaces)
+//           defeat naive `.trim().slice(1, -1)` quote-stripping.
+//        2) Edges added cycle-3 (quoted-value-with-internal-=, single-
+//           quote-as-value, brackets-with-trailing-junk) force a strict
+//           regex/anchor on the section-header check rather than a naive
+//           `line.startsWith('[')` test, and force quote-stripping AFTER
+//           the first-`=` split rather than before.
+//        Primary axis: spec_precision; secondary: stateful_logic (line-by-
+//        line state tracking with section reentry). Re-confirm noise
+//        hypothesis post-SSE-fix before any redesign. See
+//        difficulty-pack/good-tests.md row 6.
+
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';

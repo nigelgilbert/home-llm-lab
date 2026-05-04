@@ -106,7 +106,10 @@ curl -fsS "$BRIDGE_HEALTH" >/dev/null 2>&1 \
 # outside this script), we rebuild conservatively — cheap when cache is warm.
 #
 # Caveat: this does NOT cover the claw-code:local upstream — if you rebuilt
-# claw, also rebuild this image manually (the marker won't notice).
+# claw, also rebuild this image manually (the marker won't notice). Quick
+# forcing knob: `touch host/test/Dockerfile` bumps a watched mtime and the
+# next sweep will rebuild. The smoke signal that you forgot is rows with an
+# unchanged RUN_REGISTRY_HARNESS_VERSION but visibly different claw behavior.
 FRESHNESS_MARKER="$TEST_DIR/.claw-runtime/.image-fresh-marker"
 stat_mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null; }
 

@@ -223,12 +223,12 @@ function main() {
       const { stats } = cells.get(`${t}|${tier}`);
       if (stats.total === 0) continue;
       const flags = [
-        r1Trips(stats) ? '⚠️' : '',
-        r2Trips(stats) ? '⚠️' : '',
-        r3Trips(stats) ? '⚠️' : '',
-        r4Trips(stats) ? '⚠️' : '',
-        r5Trips(stats) ? '⚠️' : '',
-        r6Trips(stats) ? '⚠️' : '',
+        r1Trips(stats) ? '!' : '',
+        r2Trips(stats) ? '!' : '',
+        r3Trips(stats) ? '!' : '',
+        r4Trips(stats) ? '!' : '',
+        r5Trips(stats) ? '!' : '',
+        r6Trips(stats) ? '!' : '',
       ];
       md.push(`| \`${t}\` | t${tier} | ${flags[0]} | ${flags[1]} | ${flags[2]} | ${flags[3]} | ${flags[4]} | ${flags[5]} | ${stats.p90Iters ?? '—'} | ${stats.p90ElapsedMs ?? '—'} |`);
     }

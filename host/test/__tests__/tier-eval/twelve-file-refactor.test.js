@@ -503,13 +503,13 @@ describe(`twelve-file-refactor: thread two params through 7 call sites in 12 fil
       passed,
       claw_exit: r.code,
       target_file_exists: workspace.exists('format.js'),
-      post_status: post ? post.status : null,
-      post_stderr_tail: post ? post.stderr.slice(0, 800) : null,
+      post_status: post?.status ?? null,
+      post_stderr_tail: post?.stderr?.slice(0, 800) ?? null,
     });
 
     if (r.terminal_status === 'timeout') assert.fail(`claw timed out after ${r.elapsedMs}ms`);
 
     assert.equal(r.code, 0, 'claw must exit cleanly');
-    assert.equal(post.status, 0, `test.js still fails:\n${post.stderr.slice(0, 800)}`);
+    assert.equal(post?.status, 0, `test.js still fails:\n${post?.stderr?.slice(0, 800)}`);
   });
 });

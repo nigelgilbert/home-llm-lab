@@ -46,6 +46,10 @@ import { runClaw, writeAssertionResult } from '../../lib/claw.js';
 import * as workspace from '../../lib/workspace.js';
 import { clawModel, TIER_LABEL } from '../../lib/tier.js';
 
+// Pinned: bumping invalidates prior cycle runs. If buildBoard() throws at
+// module-load (placement loop exhausted, or dual-anchor sanity mismatch),
+// the per-test SIGKILL wrapper surfaces it as registry terminal_status=
+// harness_error — not 'error' — because import never finished.
 const VERSION_SEED = 'word-search-v2.1-2026-05-03-seed-m4r8t';
 
 const ROWS = 40;
@@ -481,7 +485,7 @@ describe(`word-search v2.1: dual-anchor multi-match enumeration (tier=${TIER_LAB
     }
     const passed = r.code === 0 && targetExists && post?.status === 0;
 
-    console.log(`\n=== word-search v2 (${TIER_LABEL}) ===`);
+    console.log(`\n=== word-search v2.1 (${TIER_LABEL}) ===`);
     console.log(`  claw: exit=${r.code} elapsed=${r.elapsedMs}ms files=${JSON.stringify(workspace.list())}`);
     if (r.code !== 0) console.log(`  claw stderr (tail):\n${r.stderr.slice(-1500)}`);
     if (post) console.log(`  verify: exit=${post.status} stderr=${post.stderr.slice(0, 400).trim()}`);

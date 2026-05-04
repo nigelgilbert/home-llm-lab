@@ -7,7 +7,7 @@ This bucket is empty by design at 2026-05-02. It exists to fix the directory lay
 Expected contents when work begins:
 - `README.md` — stakeholder summary (replacing this placeholder)
 - `PLAN.md` — engineering implementation plan
-- Stream-specific decision docs (analogous to `p1-picks.md` / `p2-decision.md` in `difficulty-pack/`)
+- Stream-specific sourcing/decision docs (one per stream, locking picks and rationale)
 - `memos/` — supporting research and findings memos
 
 **Prerequisites for opening this pack:**

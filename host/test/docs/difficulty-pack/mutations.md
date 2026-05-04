@@ -1,10 +1,10 @@
 # P1 mutation specs — Sprint 1.21
 
-Per-pick mutation specifications for the 7 locked Aider/Exercism JS ports
-([`p1-picks.md`](p1-picks.md)). Each spec lists the rename map, edge-case
-shifts, and return-shape changes that get applied before the test ships.
-Mutation depth (HEAVY / STANDARD) follows from the contamination flag in
-the picks table.
+Per-pick mutation specifications for the 7 locked Aider/Exercism JS ports.
+Each spec lists the rename map, edge-case shifts, and return-shape changes
+that get applied before the test ships. Mutation depth (HEAVY / STANDARD)
+followed from the contamination flag in the picks table at sourcing time
+(see shipped test files for the final disposition).
 
 **Goal of mutation:** defeat surface-level recall ("I've seen this exact
 problem") while preserving the underlying capability test (spec_precision
@@ -230,9 +230,9 @@ specifically narrowed; surface recall is moderate.
 
 **Why standard:** Roster-keeping is a generic OOP-101 pattern; recall
 risk is moderate, but the spec is simple enough that recall isn't the
-main concern — *saturation* is. This pick is flagged for ceiling risk on
-t32 in [`p1-picks.md`](p1-picks.md). Mutation should add complexity, not
-just surface noise.
+main concern — *saturation* is. This pick was flagged for ceiling risk
+on t32 at sourcing. Mutation should add complexity, not just surface
+noise.
 
 ### Rename map
 
@@ -328,7 +328,7 @@ For each pick:
 2. Apply rename map verbatim from this doc to your authored prompt + verify.js.
 3. Implement edge-case shifts and return-shape changes in the verify.js assertion suite.
 4. Hand-solve at least 3 verifier cases — if you can't solve them in <10 min, the mutation is too aggressive; back off.
-5. Author the test file using [`authoring-template.md`](authoring-template.md).
+5. Author the test file by copying an existing tier-eval test (e.g., [`../../__tests__/tier-eval/expression-eval.test.js`](../../__tests__/tier-eval/expression-eval.test.js)) as the starting point.
 6. In the manifest `notes` field, write `"adapted_from Exercism JS '<slug>' (MIT); mutation depth: HEAVY|STANDARD; key changes: <rename, edge shift, shape change list>; canonical at canonicals/<slug>/"`.
 7. Verify the test runs locally before pilot kickoff.
 

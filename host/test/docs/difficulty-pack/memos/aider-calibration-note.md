@@ -8,9 +8,7 @@ benchmark is **not published anywhere** — neither in the
 repo, [`Aider-AI/aider`](https://github.com/Aider-AI/aider) repo,
 [aider.chat/docs/leaderboards](https://aider.chat/docs/leaderboards/) UI,
 nor on Hugging Face. Aider commits **only aggregate stats** over all 225
-mixed-language cases. Our 7 P1 picks proceed blind on per-slug data; the
-[`p1-picks.md`](../p1-picks.md) "Research disclosure" section already
-warns of this.
+mixed-language cases. Our 7 P1 picks proceed blind on per-slug data.
 
 What the aggregate data **does** tell us shifts the calibration: our pick
 mix is plausibly tilted **too hard** for Qwen3.5-9B, and we should be
@@ -97,11 +95,11 @@ suggests. We genuinely don't know until pilot.
 [`../PLAN.md`](../PLAN.md) §Calibration / Reject criteria):
 
 > When R1 (t16 0/5 floor) fires on a difficulty-7–8 P1 pick, **do not
-> immediately auto-reject and re-author**. First swap with the
-> [p1-picks.md](../p1-picks.md) §Runner-up bench candidate at the next
-> difficulty band down (e.g., `word-search` 8 → `ledger`; `wordy` 7 →
-> well, no easier wordy-class runner-up — accept or hand-author). The
-> runner-up bench is positioned exactly for this scenario.
+> immediately auto-reject and re-author**. First swap with a runner-up
+> bench candidate at the next difficulty band down (e.g., `word-search`
+> 8 → `ledger`; `wordy` 7 → no comparable runner-up — accept or
+> hand-author). The runner-up bench is positioned exactly for this
+> scenario.
 
 Concrete swap candidates if pilot floors:
 
@@ -119,10 +117,10 @@ extra hours of exclusive chip time. Within tolerance of the 3–7 hour
 calibration budget called out in [`../PLAN.md`](../PLAN.md) §Execution
 order.
 
-## Update to "Research disclosure" in p1-picks.md
+## Updated research disclosure
 
-The current disclosure says "Aider pass rate: unknown — proceed blind." It
-should additionally say:
+The original "Aider pass rate: unknown — proceed blind" disclosure should
+additionally say:
 
 > Aggregate Qwen3-32B pass@2 = 40–46%. Qwen3.5-9B aggregate is
 > conservatively estimated at 25–35%, suggesting four difficulty-7–8 picks

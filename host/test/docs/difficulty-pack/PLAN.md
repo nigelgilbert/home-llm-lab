@@ -64,7 +64,7 @@ Source memo: [`memos/n8-confirm-vs-baseline.md`](memos/n8-confirm-vs-baseline.md
 | H4 | Hand-authored gap-filler (axis TBD post-pilot — likely 2nd convergence at 6-step or 2nd multi_file at 8-file scale) | 1 | TBD (convergence or multi_file_context) | hard | 3.5h author + 1h calibrate |
 | | **Total** | **12** | | | ~30h authoring + ~12h calibration |
 
-Hand-authored cap dropped from 5–6 → 3 per design review, then bumped back to 4 after P2 sourcing reduced from 2 → 1 ports — full P2 sourcing trail in [`p2-decision.md`](p2-decision.md). Dropped from earlier scoping: tool-discipline-primary test (would re-litigate axis classification of `tool-confusion-redundant-verifies`, scope creep) and 15–20 file workspace (marginal axis-coverage gain over H2 and existing `large-refactor`). Multi-SWE-bench JS/TS deferred to Sprint 4 — adapter cost (npm-install layer in container) is real and orthogonal.
+Hand-authored cap dropped from 5–6 → 3 per design review, then bumped back to 4 after P2 sourcing reduced from 2 → 1 ports. Dropped from earlier scoping: tool-discipline-primary test (would re-litigate axis classification of `tool-confusion-redundant-verifies`, scope creep) and 15–20 file workspace (marginal axis-coverage gain over H2 and existing `large-refactor`). Multi-SWE-bench JS/TS deferred to Sprint 4 — adapter cost (npm-install layer in container) is real and orthogonal.
 
 ### Failure modes deliberately probed
 
@@ -196,7 +196,7 @@ Even if every new test lands cleanly in the discriminative middle, the *combined
 
 ### P1: Aider/Exercism JS hand-translations (7 tests)
 
-Locked picks (full research trail in [`p1-picks.md`](p1-picks.md)): book-store, wordy, alphametics, word-search, forth, grade-school, two-bucket. Runner-up bench: ledger, robot-name, zebra-puzzle, poker.
+Locked picks: book-store, wordy, alphametics, word-search, forth, grade-school, two-bucket. Runner-up bench: ledger, robot-name, zebra-puzzle, poker.
 
 Selection process:
 
@@ -215,8 +215,6 @@ License posture: Exercism content is per-exercise licensed (mostly MIT, some CC-
 Budget: ~7 ports × 2.5h = 17.5h.
 
 ### P2: AtCoder ARC 216 C "Count Power of 2" (2026-03-22), relaxed-N (1 test)
-
-Full decision trail in [`p2-decision.md`](p2-decision.md).
 
 **Why not LiveCodeBench:** LCB v6 (current public release) tops out at Apr 2025. Qwen3.5 shipped Feb 2026 and Qwen3.6 shipped Mar 2026; the model's exact training-data freeze is undisclosed by Alibaba but is necessarily ≤ release. We cannot prove any LCB v6 problem is post-freeze, only that it is "released N months before the model shipped" — a soft defense. Direct sourcing from contests dated **after Feb 2026** gives a hard post-release guarantee that LCB v6 cannot.
 
@@ -271,13 +269,10 @@ Budget: 4 × ~3.5h = 14h.
 
 ### Authoring template (canonical pattern)
 
-Full canonical template — manifest header, imports, `describe`/`it`
-structure, timeout-guard ordering, and per-stream pattern variations —
-lives in [`authoring-template.md`](authoring-template.md). Copy from
-there as the starting point for each new test file. The template
-re-exports the existing pattern from
-[`../../__tests__/tier-eval/expression-eval.test.js`](../../__tests__/tier-eval/expression-eval.test.js)
-without harness changes.
+Copy [`../../__tests__/tier-eval/expression-eval.test.js`](../../__tests__/tier-eval/expression-eval.test.js)
+as the starting point for each new test file — manifest header, imports,
+`describe`/`it` structure, and timeout-guard ordering. No harness changes
+needed.
 
 ---
 
@@ -287,7 +282,7 @@ without harness changes.
 
 - **Severity:** High. Qwen2.5/Qwen3 training cutoffs almost certainly cover Exercism JS plus their canonical solutions.
 - **Failure mode if unmitigated:** Tests pass on small models via memorization, not capability. Discrimination matrix interpretation is invalidated — we'd be measuring training-set recall, not spec_precision/stateful_logic.
-- **Mitigation (mandatory):** Per-port mutation step (rename + edge shift + return shape change) + R8 calibration check (memorization audit if t16 ≥ 70%). P2 uses post-Feb-2026 sourcing as a hard post-release defense; rationale and the LCB-v6 rejection in [`p2-decision.md`](p2-decision.md).
+- **Mitigation (mandatory):** Per-port mutation step (rename + edge shift + return shape change) + R8 calibration check (memorization audit if t16 ≥ 70%). P2 uses post-Feb-2026 sourcing as a hard post-release defense.
 - **Residual risk:** Mutation may not fully sever recall paths for popular Exercism exercises. **Prefer Exercism exercises with low GitHub fork count** as a structural defense; document the choice in manifest `notes`.
 
 ### R-2: License — per-exercise Exercism audit
@@ -398,7 +393,7 @@ End-to-end checks before declaring 1.21 done:
 3. **Reject criteria:** every committed test cleared R1–R8 with witness data in a `1.21-calibration-log.md` artifact.
 4. **Smoke run:** existing `sprint1-emit-smoke.mjs` extended to validate one new test from each stream (P1, P2, H1/H2/H3 representative). 14/14 → 17/17 expected.
 5. **CI emission:** All 12 new tests produce registry rows on at least one t16 and one t32 attempt during pilot. No `harness_error` rows on author/CI machines.
-6. **Hand-solve audit log:** for each test, a 1-paragraph note in PR body or `1.21-handsolve-log.md` showing the author solved it from prompt+seed in <10min (or marking it `frontier`).
+6. **Hand-solve audit log:** for each test, a 1-paragraph note in PR body showing the author solved it from prompt+seed in <10min (or marking it `frontier`).
 7. **Sprint 2 dry run:** with 12 new tests committed, generate a draft `discrimination_matrix_v1.csv` from the pilot data (N=5, screening only) and confirm at least 6 cells land in the discriminative middle band.
 
 ---

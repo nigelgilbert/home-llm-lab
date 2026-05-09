@@ -1,15 +1,15 @@
-// Sprint 1.22: prelude + postlude split for tier-eval tests.
+// Prelude + postlude for tier-eval Family A/B tests.
 //
-// The 32 Family A/B tier-eval tests share a fixed prelude (workspace reset →
+// Family A/B tier-eval tests share a fixed prelude (workspace reset →
 // seed-write → optional pre-condition → runner → log header) and a fixed
 // postlude (writeAssertionResult → timeout-guard → declarative asserts).
 // The middle — *when* the post-script runs and *what* extra checks the test
 // makes — genuinely varies. This helper owns prelude + postlude only;
 // per-test JS lives between them.
 //
-// Sprints 1.10 and 1.16a were postlude changes (registry payload schema;
-// timeout-guard semantics). Centralising the postlude here is the property
-// 1.22 must preserve so the next such change is a one-file edit.
+// Past postlude changes (registry payload schema, timeout-guard semantics)
+// touched every tier-eval test. Centralising the postlude here is the
+// property to preserve so the next such change is a one-file edit.
 //
 // Family A (fix-and-rerun) and Family B (create-and-verify) both fit. Family
 // C (`prose-quality`, `latency`, `tool-discipline` — streamMessage-only, no
@@ -149,18 +149,14 @@ export async function runAgentSetup({
   if (agent.code !== 0) console.log(`  agent stderr (tail):\n${agent.stderr.slice(-AGENT_STDERR_TAIL)}`);
 
   let post = null;
-
-  function runPost(filename) {
-    post = spawnSync('node', [path.join(workspace.WORKSPACE, filename)], {
+  if (postScript) {
+    post = spawnSync('node', [path.join(workspace.WORKSPACE, postScript)], {
       encoding: 'utf8',
       timeout:  postScriptTimeoutMs,
       cwd:      workspace.WORKSPACE,
     });
-    console.log(`  node post: ${filename} exit=${post.status} stderr=${post.stderr.slice(0, 400).trim()}`);
-    return post;
+    console.log(`  node post: ${postScript} exit=${post.status} stderr=${post.stderr.slice(0, 400).trim()}`);
   }
-
-  if (postScript) runPost(postScript);
 
   // `passed` is derived from "did anything throw inside the try block." All
   // checks — auto-asserts and per-test invariants — live in one block, so

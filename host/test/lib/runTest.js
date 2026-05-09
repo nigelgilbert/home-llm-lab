@@ -25,7 +25,10 @@
 // the agent and populates ctx.post. When omitted, ctx.post stays null.
 //
 // finish() auto-asserts agent.code === 0 and (when postScript was set)
-// post.status === 0. The callback is for per-test invariants only.
+// post.status === 0. The callback is for per-test invariants only and
+// runs *between* those two checks — after the agent-exit assert, before
+// the post.status assert — so workspace-shape errors surface ahead of
+// the post-script's stderr tail.
 //
 // RunnerResult contract — any injected `runner` must resolve with:
 //   {
@@ -88,7 +91,9 @@ const POST_STDERR_TAIL = 800;
  * @property {typeof workspace}        workspace   Workspace module (read/exists/list/reset/WORKSPACE/unchanged).
  * @property {PostResult|null}         post        Post-script result; null when postScript was not set.
  * @property {(asserts: () => void) => Promise<{ agent: RunnerResult, post: PostResult|null, payload: AssertionPayload }>} finish
- *           Finalize the run: auto-assert agent (and post, when postScript was set) exited zero, invoke the per-test asserts callback, and write the registry payload.
+ *           Finalize the run and write the registry payload. Order of checks:
+ *           agent exited cleanly → asserts() callback → (if postScript) post exited cleanly.
+ *           The callback runs against the post-agent workspace; it must not depend on post-script side effects.
  */
 
 /**
@@ -171,14 +176,19 @@ export async function runAgentSetup({
       // (which asserts a script fails before the agent runs); these assert
       // the agent exited cleanly and, when a postScript was set, that it
       // also exited zero. The callback is for per-test invariants only.
+      //
+      // Order: agent.code (system-level — workspace state is undefined past
+      // a crash, so don't run user asserts on a corpse) → user asserts
+      // (test-specific intent, typically more readable than the post-script's
+      // stderr tail) → post.status (catch-all when nothing more specific fired).
       assert.equal(agent.code, 0, 'agent must exit cleanly');
+      asserts();
       if (postScript) {
         assert.equal(
           post.status, 0,
           `post-script (${postScript}) failed:\n${post.stderr.slice(0, POST_STDERR_TAIL)}`,
         );
       }
-      asserts();
     } catch (e) {
       thrown = e;
     }

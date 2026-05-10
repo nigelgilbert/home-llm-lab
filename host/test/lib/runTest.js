@@ -90,7 +90,7 @@ const POST_STDERR_TAIL = 800;
  * @property {RunnerResult}            agent       Result record from the agent runner.
  * @property {typeof workspace}        workspace   Workspace module (read/exists/list/reset/WORKSPACE/unchanged).
  * @property {PostResult|null}         post        Post-script result; null when postScript was not set.
- * @property {(asserts: () => void) => Promise<{ agent: RunnerResult, post: PostResult|null, payload: AssertionPayload }>} finish
+ * @property {(asserts?: () => void) => Promise<void>} finish
  *           Finalize the run and write the registry payload. Order of checks:
  *           agent exited cleanly → asserts() callback → (if postScript) post exited cleanly.
  *           The callback runs against the post-agent workspace; it must not depend on post-script side effects.
@@ -198,7 +198,6 @@ export async function runAgentSetup({
     writeAssertionResult(agent.runDir, payload);
 
     if (thrown) throw thrown;
-    return { agent, post, payload };
   }
 
   return {

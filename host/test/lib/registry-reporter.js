@@ -75,7 +75,7 @@ function flush(pending) {
     passed:           pending.passed,
     claw_exit:        a.code ?? null,
     post_status:      p ? p.status : null,
-    post_stderr_tail: p ? (p.stderrTail ?? '').slice(0, POST_STDERR_TAIL) : null,
+    post_stderr_tail: p ? (p.stderrTail ?? '').slice(-POST_STDERR_TAIL) : null,
   });
 }
 

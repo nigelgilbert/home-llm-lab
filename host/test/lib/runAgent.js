@@ -37,6 +37,14 @@ const DEFAULT_PRECONDITION_TIMEOUT_MS = 5_000;
 const AGENT_STDERR_TAIL = 1_500;
 const POST_STDERR_TAIL  = 800;
 
+// Buffer between claw's internal timer expiring and node:test's outer
+// {timeout} firing. Covers diagnostic flush (workspace.list + JSON.stringify),
+// reporter event propagation, and GC/OS jitter — i.e. everything that happens
+// after the runner returns *except* the post-script, which gets its own
+// budget. Total slack used is FLUSH_MARGIN_MS + preconditionTimeoutMs +
+// postScriptTimeoutMs (when present), computed per-call.
+const FLUSH_MARGIN_MS = Number(process.env.RUNAGENT_FLUSH_MARGIN_MS) || 3_000;
+
 /**
  * @typedef {Object} RunnerResult
  * @property {number|null} code              Agent process exit code; null on timeout.
@@ -65,11 +73,12 @@ const POST_STDERR_TAIL  = 800;
  * @param {number}                [opts.preconditionTimeoutMs=5000]
  * @param {string|null}           [opts.postScript=null]
  * @param {number}                [opts.postScriptTimeoutMs=5000]
- * @param {number}                [opts.clawTimeoutMs]  claw's internal ceiling.
- *   Must be strictly less than the test's `{timeout}` so claw aborts itself in
- *   time for runAgent to emit diagnostics before node:test cancels the test.
- *   The test-body convention is `{timeout: CLAW_TIMEOUT + 20_000}` and
- *   `clawTimeoutMs: CLAW_TIMEOUT`.
+ * @param {number}                [opts.clawTimeoutMs]  claw's nominal budget.
+ *   The author sets this equal to the test's `{timeout}` (one constant in two
+ *   places). runAgent subtracts a per-call slack — precondition + post-script
+ *   timeouts plus FLUSH_MARGIN_MS — and passes the shrunk value to the
+ *   runner, so claw aborts in time for runAgent to emit diagnostics before
+ *   node:test cancels the test. Throws if clawTimeoutMs <= slack.
  * @param {string}                opts.testId
  * @param {Runner}                [opts.runner=defaultRunner]
  * @param {import('node:test').TestContext} opts.t  node:test context; runAgent
@@ -95,6 +104,19 @@ export async function runAgent({
     throw new Error('runAgent: pass the TestContext (`t`); destructuring t.diagnostic loses its binding');
   }
   const signal = t.signal;
+
+  const slackMs = (preconditionMustFail ? preconditionTimeoutMs : 0)
+                + (postScript          ? postScriptTimeoutMs    : 0)
+                + FLUSH_MARGIN_MS;
+  if (typeof clawTimeoutMs !== 'number' || clawTimeoutMs <= slackMs) {
+    throw new Error(
+      `runAgent: clawTimeoutMs (${clawTimeoutMs}ms) must exceed slack (${slackMs}ms = ` +
+      `precondition ${preconditionMustFail ? preconditionTimeoutMs : 0} + ` +
+      `post ${postScript ? postScriptTimeoutMs : 0} + flush ${FLUSH_MARGIN_MS}). ` +
+      `Set the test's {timeout} and clawTimeoutMs to the same value; runAgent owns the slack.`,
+    );
+  }
+  const runnerTimeoutMs = clawTimeoutMs - slackMs;
 
   // Sprint 1.22 originally guarded RUN_REGISTRY_EMIT=1 against a missing
   // registry-reporter via globalThis.__registryReporterLoaded — but node:test
@@ -125,7 +147,7 @@ export async function runAgent({
     );
   }
 
-  const agent = await runner({ prompt, signal, timeoutMs: clawTimeoutMs });
+  const agent = await runner({ prompt, signal, timeoutMs: runnerTimeoutMs });
   t.diagnostic(`runDir=${agent.runDir}`);
   t.diagnostic(`test_id=${testId}`);
   t.diagnostic(`agent_result=${JSON.stringify({

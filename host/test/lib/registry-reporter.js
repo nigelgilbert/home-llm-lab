@@ -68,7 +68,7 @@ function flush(pending) {
   const p = pending.post_result;
   writeAssertionResult(pending.runDir, {
     passed:           pending.passed,
-    claw_exit:        typeof a.code === 'number' || a.code === null ? a.code : null,
+    claw_exit:        a.code ?? null,
     post_status:      p ? p.status : null,
     post_stderr_tail: p ? (p.stderrTail ?? '').slice(0, POST_STDERR_TAIL) : null,
   });

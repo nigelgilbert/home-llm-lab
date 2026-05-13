@@ -51,11 +51,12 @@ const PROMPT =
   'Use 2 headers (## style) and at least 4 bullet points. ' +
   'Aim for around 250 words. Do not call any tools, just respond with the markdown.';
 
-const N            = Number(process.env.PROSE_N) || 3;
-const TIMEOUT      = 300_000;
-const MIN_TEXT_LEN = 600;
-const MIN_NEWLINES = 5;
-const MIN_BULLETS  = 3;
+const N                 = Number(process.env.PROSE_N) || 3;
+const ITERATION_TIMEOUT = 300_000;
+const OUTER_TIMEOUT     = N * ITERATION_TIMEOUT + 10_000;
+const MIN_TEXT_LEN      = 600;
+const MIN_NEWLINES      = 5;
+const MIN_BULLETS       = 3;
 
 const ANSI_RE  = /\x1b\[[0-9;]*[A-Za-z]/g;
 const stripAnsi = (s) => s.replace(ANSI_RE, '');
@@ -72,7 +73,7 @@ function countText(text) {
 describe(`prose quality via raw bridge (tier=${TIER_LABEL})`, () => {
   it(
     `${N}× markdown via streamMessage: len ≥ ${MIN_TEXT_LEN}, newlines ≥ ${MIN_NEWLINES}, bullets ≥ ${MIN_BULLETS}`,
-    { timeout: TIMEOUT },
+    { timeout: OUTER_TIMEOUT },
     async ({ signal }) => {
       const results = [];
       for (let i = 0; i < N; i++) {
@@ -121,11 +122,11 @@ describe(`prose quality via raw bridge (tier=${TIER_LABEL})`, () => {
 describe(`prose quality via claw renderer (tier=${TIER_LABEL}, informational)`, () => {
   it(
     `${N}× markdown via claw: counts reported, no assertions`,
-    { timeout: TIMEOUT },
+    { timeout: OUTER_TIMEOUT },
     async ({ signal }) => {
       const results = [];
       for (let i = 0; i < N; i++) {
-        const r     = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: TIMEOUT });
+        const r     = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: ITERATION_TIMEOUT });
         const clean = stripAnsi(r.stdout);
         const { newlines, bullets } = countText(clean);
         results.push({ code: r.code, elapsedMs: r.elapsedMs, rawLen: r.stdout.length, cleanLen: clean.length, newlines, bullets, clean });

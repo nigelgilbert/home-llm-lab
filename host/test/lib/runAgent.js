@@ -165,7 +165,7 @@ export async function runAgent({
       script:     postScript,
       status:     post.status,
       stderrTrim: post.stderr.slice(0, 400),
-      stderrTail: post.stderr.slice(0, POST_STDERR_TAIL),
+      stderrTail: post.stderr.slice(-POST_STDERR_TAIL),
     })}`);
   }
 

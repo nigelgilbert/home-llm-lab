@@ -22,6 +22,11 @@
 // instance fields — destructuring (`{ diagnostic } = t`) loses the `this`
 // binding and throws on call. Cleaner to take `t` and let runAgent invoke
 // `t.diagnostic(…)` and read `t.signal` inline.
+//
+// Frontier tests under __tests__/tier-eval/frontier/ deliberately opt out of
+// this helper and call runClaw + writeAssertionResult directly. Don't migrate
+// them blindly; expected-attempts.mjs treats both entry points as
+// emit-eligible by design.
 
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
@@ -70,9 +75,9 @@ const FLUSH_MARGIN_MS = Number(process.env.RUNAGENT_FLUSH_MARGIN_MS) || 3_000;
  * @param {string} opts.prompt
  * @param {Object<string,string>} [opts.seedFiles={}]
  * @param {string|null}           [opts.preconditionMustFail=null]
- * @param {number}                [opts.preconditionTimeoutMs=5000]
+ * @param {number}                [opts.preconditionTimeoutMs]  Defaults to DEFAULT_PRECONDITION_TIMEOUT_MS.
  * @param {string|null}           [opts.postScript=null]
- * @param {number}                [opts.postScriptTimeoutMs=5000]
+ * @param {number}                [opts.postScriptTimeoutMs]    Defaults to DEFAULT_POST_SCRIPT_TIMEOUT_MS.
  * @param {number}                [opts.clawTimeoutMs]  Set equal to the test's
  *   `{timeout}`. runAgent subtracts slack (precondition + post + FLUSH_MARGIN_MS)
  *   and passes the remainder to the runner. Throws if too small for the slack.

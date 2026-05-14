@@ -149,14 +149,15 @@ export function runClaw({
       }
 
       // Sprint 1.13 (research-team direction, 2026-04-29 memo): on timeout,
-      // resolve with a structured result instead of rejecting. This lets the
-      // caller still call writeAssertionResult, so every attempted (test ×
-      // tier × rep) cell produces a registry row. Without this, a timeout
-      // throws before assertion_result.json is written and Sprint 2's Wilson
-      // CIs would be computed against observed N rather than planned N.
-      // Test files see r.code === null and r.terminal_status === 'timeout',
-      // and their existing assert.equal(r.code, 0) still fails the test —
-      // but the row has already landed.
+      // resolve with a structured result instead of rejecting. Test files
+      // see r.code === null and r.terminal_status === 'timeout' and their
+      // existing assert.equal(r.code, 0) still fails the test — but the
+      // test:fail event lands cleanly so the registry reporter (Sprint
+      // 1.22, lib/registry-reporter.js) still writes assertion_result.json
+      // from the buffered diagnostics. Without this, a timeout rejection
+      // would surface as an uncaught error before runAgent's diagnostics
+      // are emitted and the cell would produce no row, leaving Sprint 2's
+      // Wilson CIs computed against observed N rather than planned N.
       if (aborted) {
         resolve({
           code: null,

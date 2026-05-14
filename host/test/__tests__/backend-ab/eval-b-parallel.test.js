@@ -31,13 +31,14 @@ const EXPECTED = [
   { file: 'c.py', match: /print\(\s*3\s*\)/ },
 ];
 
-const TIMEOUT = 300_000;
+// runClaw's inner timer must fire before node:test's outer timeout so its structured timeout result lands first — see claw.js:90-97.
+const CLAW_TIMEOUT = 300_000;
 
 describe(`eval B — three parallel writes (backend=${BACKEND}, model=${clawModel})`, () => {
   beforeEach(() => workspace.reset());
 
-  it('claw creates a.py, b.py, c.py with matching contents', { timeout: TIMEOUT }, async ({ signal }) => {
-    const r = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: TIMEOUT });
+  it('claw creates a.py, b.py, c.py with matching contents', { timeout: CLAW_TIMEOUT + 20_000 }, async ({ signal }) => {
+    const r = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: CLAW_TIMEOUT });
 
     console.log(`\n=== eval-b (${BACKEND}) ===`);
     console.log(`  exit=${r.code} elapsed=${r.elapsedMs}ms files=${JSON.stringify(workspace.list())}`);

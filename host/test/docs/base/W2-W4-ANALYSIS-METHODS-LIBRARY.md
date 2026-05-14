@@ -66,7 +66,7 @@ def cliffs_delta(a: list[float], b: list[float]) -> Optional[float]:
 
 **Interpretation thresholds (Romano et al. convention):**
 
-| |δ| | label |
+| \|δ\| | label |
 |---|---|
 | < 0.147 | negligible |
 | < 0.33 | small |

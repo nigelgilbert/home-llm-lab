@@ -16,10 +16,12 @@ import { runClaw }     from '../../lib/claw.js';
 import * as workspace  from '../../lib/workspace.js';
 import { clawModel }   from '../../lib/model.js';
 
-const SETTINGS_LABEL = process.env.SETTINGS_LABEL || 'unknown';
-const N_SINGLE       = Number(process.env.AGENT_SINGLE_N)   || 5;
-const N_PARALLEL     = Number(process.env.AGENT_PARALLEL_N) || 3;
-const TIMEOUT        = 300_000;
+const SETTINGS_LABEL         = process.env.SETTINGS_LABEL || 'unknown';
+const N_SINGLE               = Number(process.env.AGENT_SINGLE_N)   || 5;
+const N_PARALLEL             = Number(process.env.AGENT_PARALLEL_N) || 3;
+const ITERATION_TIMEOUT      = 300_000;
+const SINGLE_OUTER_TIMEOUT   = N_SINGLE   * ITERATION_TIMEOUT + 10_000;
+const PARALLEL_OUTER_TIMEOUT = N_PARALLEL * ITERATION_TIMEOUT + 10_000;
 
 const SINGLE_PROMPT   = "create hello.py with one line: print('hello')";
 const PARALLEL_PROMPT =
@@ -47,14 +49,14 @@ describe(`agent: single-file write × ${N_SINGLE} (settings=${SETTINGS_LABEL})`,
 
   it(
     `${N_SINGLE} runs: all produce hello.py, latency distribution reported`,
-    { timeout: TIMEOUT },
+    { timeout: SINGLE_OUTER_TIMEOUT },
     async ({ signal }) => {
       const latencies = [];
       const failures  = [];
 
       for (let i = 0; i < N_SINGLE; i++) {
         workspace.reset();
-        const r = await runClaw({ prompt: SINGLE_PROMPT, model: clawModel, signal, timeoutMs: TIMEOUT });
+        const r = await runClaw({ prompt: SINGLE_PROMPT, model: clawModel, signal, timeoutMs: ITERATION_TIMEOUT });
         const ok = r.code === 0 && workspace.exists('hello.py');
         latencies.push(r.elapsedMs);
         if (!ok) failures.push(`run ${i + 1}: exit=${r.code} files=${JSON.stringify(workspace.list())}`);
@@ -79,7 +81,7 @@ describe(`agent: parallel-file write × ${N_PARALLEL} (settings=${SETTINGS_LABEL
 
   it(
     `${N_PARALLEL} runs: all produce a.py b.py c.py, latency distribution reported`,
-    { timeout: TIMEOUT },
+    { timeout: PARALLEL_OUTER_TIMEOUT },
     async ({ signal }) => {
       const latencies = [];
       const failures  = [];
@@ -87,7 +89,7 @@ describe(`agent: parallel-file write × ${N_PARALLEL} (settings=${SETTINGS_LABEL
 
       for (let i = 0; i < N_PARALLEL; i++) {
         workspace.reset();
-        const r  = await runClaw({ prompt: PARALLEL_PROMPT, model: clawModel, signal, timeoutMs: TIMEOUT });
+        const r  = await runClaw({ prompt: PARALLEL_PROMPT, model: clawModel, signal, timeoutMs: ITERATION_TIMEOUT });
         const ok = r.code === 0 && EXPECTED.every((f) => workspace.exists(f));
         latencies.push(r.elapsedMs);
         if (!ok) failures.push(`run ${i + 1}: exit=${r.code} files=${JSON.stringify(workspace.list())}`);

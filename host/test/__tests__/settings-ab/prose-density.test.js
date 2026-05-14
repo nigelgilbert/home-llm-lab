@@ -20,12 +20,13 @@ import { runClaw }    from '../../lib/claw.js';
 import * as workspace from '../../lib/workspace.js';
 import { clawModel }  from '../../lib/model.js';
 
-const SETTINGS_LABEL = process.env.SETTINGS_LABEL || 'unknown';
-const N              = Number(process.env.PROSE_N) || 5;
-const TIMEOUT        = 300_000;
-const MIN_LEN        = 600;
-const MIN_NEWLINES   = 5;
-const MIN_BULLETS    = 3;
+const SETTINGS_LABEL    = process.env.SETTINGS_LABEL || 'unknown';
+const N                 = Number(process.env.PROSE_N) || 5;
+const ITERATION_TIMEOUT = 300_000;
+const OUTER_TIMEOUT     = N * ITERATION_TIMEOUT + 10_000;
+const MIN_LEN           = 600;
+const MIN_NEWLINES      = 5;
+const MIN_BULLETS       = 3;
 
 const PROMPT =
   'Write a short markdown explainer about React components. ' +
@@ -38,13 +39,13 @@ const stripAnsi = (s) => s.replace(ANSI_RE, '');
 describe(`prose density observation (settings=${SETTINGS_LABEL})`, () => {
   it(
     `${N} samples: all exit 0, pass count reported (informational)`,
-    { timeout: TIMEOUT },
+    { timeout: OUTER_TIMEOUT },
     async ({ signal }) => {
       const results = [];
 
       for (let i = 0; i < N; i++) {
         workspace.reset();   // prevent agent-timing artefacts contaminating context
-        const r        = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: TIMEOUT });
+        const r        = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: ITERATION_TIMEOUT });
         const clean    = stripAnsi(r.stdout);
         const newlines = (r.stdout.match(/\n/g) ?? []).length;
         const bullets  = (clean.match(/^[ \t]*[-*•]\s/gm) ?? []).length;

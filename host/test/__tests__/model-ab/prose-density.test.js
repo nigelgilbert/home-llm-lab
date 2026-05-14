@@ -26,11 +26,12 @@ const PROMPT =
   'Use 2 headers (## style) and at least 4 bullet points. ' +
   'Aim for around 250 words. Do not call any tools, just respond with the markdown.';
 
-const N            = Number(process.env.PROSE_N) || 3;
-const TIMEOUT      = 300_000;
-const MIN_TEXT_LEN = 600;
-const MIN_NEWLINES = 5;
-const MIN_BULLETS  = 3;
+const N                 = Number(process.env.PROSE_N) || 3;
+const ITERATION_TIMEOUT = 300_000;
+const OUTER_TIMEOUT     = N * ITERATION_TIMEOUT + 10_000;
+const MIN_TEXT_LEN      = 600;
+const MIN_NEWLINES      = 5;
+const MIN_BULLETS       = 3;
 
 // Strip ANSI escape sequences (claw colorizes headers and bullets) before
 // counting structure markers. Newlines aren't ANSI-wrapped, so the newline
@@ -41,11 +42,11 @@ const stripAnsi = (s) => s.replace(ANSI_RE, '');
 describe(`prose density via claw (model=${MODEL_LABEL}, bridge=${clawModel})`, () => {
   it(
     `${N}× markdown response: len ≥ ${MIN_TEXT_LEN}, newlines ≥ ${MIN_NEWLINES}, bullets ≥ ${MIN_BULLETS}`,
-    { timeout: TIMEOUT },
+    { timeout: OUTER_TIMEOUT },
     async ({ signal }) => {
       const results = [];
       for (let i = 0; i < N; i++) {
-        const r = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: TIMEOUT });
+        const r = await runClaw({ prompt: PROMPT, model: clawModel, signal, timeoutMs: ITERATION_TIMEOUT });
         const clean    = stripAnsi(r.stdout);
         const newlines = (r.stdout.match(/\n/g) ?? []).length;
         // Bullet at start of a line — the strongest smush signal. In smushed

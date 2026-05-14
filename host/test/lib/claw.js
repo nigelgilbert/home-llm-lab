@@ -138,6 +138,7 @@ export function runClaw({
             code,
             timeout: aborted,
             model,
+            timeoutMs,
           });
           extras = { ...extras, ...meta };
         } catch (e) {
@@ -288,6 +289,7 @@ function collectRunArtifacts({
   code,
   timeout,
   model,
+  timeoutMs,
 }) {
   const runDir = path.join(RUNTIME_ROOT, runId);
   fs.mkdirSync(runDir, { recursive: true });
@@ -494,6 +496,7 @@ function collectRunArtifacts({
     code,
     timeout,
     model,
+    timeoutMs,
     iterRecords,
     sessionMeta,
     bridgeRecords,
@@ -628,6 +631,7 @@ function buildRunSummary({
   code,
   timeout,
   model,
+  timeoutMs,
   iterRecords,
   sessionMeta,
   bridgeRecords,
@@ -675,9 +679,7 @@ function buildRunSummary({
     presence_penalty: floatEnv('SAMPLER_PRESENCE_PENALTY'),
     hardware_instance: process.env.HARDWARE_INSTANCE ?? 'M5',
     concurrency: 1,
-    // Sprint 1.22: dropped from runClaw's signature when cancellation moved to
-    // the caller's AbortSignal. Build-run-table.py propagates null through.
-    timeout_ms: null,
+    timeout_ms: typeof timeoutMs === 'number' && timeoutMs > 0 ? timeoutMs : null,
     max_iterations: process.env.CLAW_MAX_ITERATIONS ? parseInt(process.env.CLAW_MAX_ITERATIONS, 10) : null,
     run_started_ms: runStartedMs,
     run_finished_ms: runFinishedMs,

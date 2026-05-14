@@ -33,7 +33,12 @@ printf '  %s\n' "${matches[@]}" >&2
 # files we found on the host are the ones executed in the container —
 # otherwise a newly-added or edited test on the host would either silently
 # run a stale copy from the image or fail to resolve.
+#
+# Pass `node ...` as the service command (rather than --entrypoint node) so
+# entrypoint.sh's /root/.claw/settings.json alias-table setup still runs
+# before our node invocation — without it, this helper would exercise a
+# different claw configuration than `npm test`/the sweep runners.
 docker compose run --rm \
   -v "$PWD/__tests__:/test/__tests__" \
   -v "$PWD/lib:/test/lib" \
-  --entrypoint node test --test "$@" "${matches[@]}"
+  test node --test "$@" "${matches[@]}"

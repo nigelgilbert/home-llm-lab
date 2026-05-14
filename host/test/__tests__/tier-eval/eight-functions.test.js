@@ -145,7 +145,7 @@ describe(`eight-functions: 12 helpers with cross-file deps (tier=${TIER_LABEL})`
     const allTargetsExist = targetsPresent.every(Boolean);
     assert.equal(allTargetsExist, true,
       `missing target files: ${TARGETS.filter((f, i) => !targetsPresent[i]).join(', ')}`);
-    if (ctx.post) assert.equal(
+    assert.equal(
       ctx.post.status, 0,
       `post-script failed:\n${ctx.post.stderr.slice(0, 800)}`,
     );

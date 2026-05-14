@@ -97,7 +97,7 @@ describe(`cascading-bugs: 5 sequential failures, one runner (tier=${TIER_LABEL})
     assert.equal(ctx.agent.code, 0, 'agent must exit cleanly');
     ctx.workspace.unchanged('run.js', RUN_JS);
     assert.match(ctx.post.stdout, /all-pass/, 'expected all-pass marker');
-    if (ctx.post) assert.equal(
+    assert.equal(
       ctx.post.status, 0,
       `post-script failed:\n${ctx.post.stderr.slice(0, 800)}`,
     );

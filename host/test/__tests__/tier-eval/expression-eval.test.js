@@ -139,7 +139,7 @@ describe(`expression-eval: recursive-descent parser (tier=${TIER_LABEL})`, () =>
     });
     assert.equal(ctx.agent.code, 0, 'agent must exit cleanly');
     ctx.workspace.unchanged('verify.js', VERIFY_JS);
-    if (ctx.post) assert.equal(
+    assert.equal(
       ctx.post.status, 0,
       `post-script failed:\n${ctx.post.stderr.slice(0, 800)}`,
     );

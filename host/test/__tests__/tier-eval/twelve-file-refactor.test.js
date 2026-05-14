@@ -487,7 +487,7 @@ describe(`twelve-file-refactor: thread two params through 7 call sites in 12 fil
     ctx.workspace.unchanged('notify.js', NOTIFY_JS);
     ctx.workspace.unchanged('helper.js', HELPER_JS);
     ctx.workspace.unchanged('constants.js', CONSTANTS_JS);
-    if (ctx.post) assert.equal(
+    assert.equal(
       ctx.post.status, 0,
       `post-script failed:\n${ctx.post.stderr.slice(0, 800)}`,
     );

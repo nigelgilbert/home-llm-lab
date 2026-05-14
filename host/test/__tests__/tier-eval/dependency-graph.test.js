@@ -98,7 +98,7 @@ describe(`dependency-graph: topological sort with cycle detection (tier=${TIER_L
     });
     assert.equal(ctx.agent.code, 0, 'agent must exit cleanly');
     ctx.workspace.unchanged('verify.js', VERIFY_JS);
-    if (ctx.post) assert.equal(
+    assert.equal(
       ctx.post.status, 0,
       `post-script failed:\n${ctx.post.stderr.slice(0, 800)}`,
     );

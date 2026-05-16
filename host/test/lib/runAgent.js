@@ -50,6 +50,12 @@ const POST_STDERR_TAIL  = 800;
 // postScriptTimeoutMs (when present), computed per-call.
 const FLUSH_MARGIN_MS = Number(process.env.RUNAGENT_FLUSH_MARGIN_MS) || 3_000;
 
+// At-most-once per TestContext (= per `it(...)` block). A second call would
+// `workspace.reset()` and spawn a second agent before the reporter could
+// flush the first call's sidecar; we'd rather fail fast at the offending
+// callsite than silently clobber. WeakSet so entries collect with the test.
+const seenContexts = new WeakSet();
+
 /**
  * @typedef {Object} RunnerResult
  * @property {number|null} code              Agent process exit code; null on timeout.
@@ -105,6 +111,10 @@ export async function runAgent({
   if (!t || typeof t.diagnostic !== 'function' || !t.signal) {
     throw new Error('runAgent: pass the TestContext (`t`); destructuring t.diagnostic loses its binding');
   }
+  if (seenContexts.has(t)) {
+    throw new Error('runAgent: at most one call per `it(...)` block; second call detected with the same TestContext');
+  }
+  seenContexts.add(t);
   const signal = t.signal;
 
   const slackMs = (preconditionMustFail ? preconditionTimeoutMs : 0)
@@ -150,7 +160,15 @@ export async function runAgent({
   }
 
   const agent = await runner({ prompt, signal, timeoutMs: runnerTimeoutMs });
-  t.diagnostic(`runDir=${agent.runDir}`);
+  if (typeof agent.runDir === 'string' && agent.runDir.length > 0) {
+    t.diagnostic(`runDir=${agent.runDir}`);
+  } else {
+    // Telemetry hiccup in claw.js's collectRunArtifacts left runDir unset
+    // (best-effort by design; see lib/claw.js). Skip the diagnostic so the
+    // reporter doesn't write a sidecar under the literal path "undefined".
+    // expected-attempts.mjs's diff catches the resulting missing registry row.
+    console.error(`[runAgent] no runDir from runner for testId=${testId}; sidecar will not be written`);
+  }
   t.diagnostic(`test_id=${testId}`);
   t.diagnostic(`agent_result=${JSON.stringify({
     code:       agent.code,
@@ -173,6 +191,11 @@ export async function runAgent({
       stderrTail: post.stderr.slice(-POST_STDERR_TAIL),
     })}`);
   }
+
+  // Sentinel for the registry reporter's per-test flush. Must be the last
+  // diagnostic this function emits; the reporter writes the sidecar +
+  // deletes the pending entry on receipt. See registry-reporter.js.
+  t.diagnostic('runAgent_done=1');
 
   return { agent, workspace, post };
 }

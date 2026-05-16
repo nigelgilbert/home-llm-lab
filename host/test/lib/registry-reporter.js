@@ -18,12 +18,16 @@
 //   test_id=<id>           (early; header + downstream registry-row test_id)
 //   agent_result=<JSON>    {code, elapsedMs, files, stderrTail?}
 //   post_result=<JSON>     {script, status, stderrTrim, stderrTail}  (only when postScript was set)
+//   runAgent_done=1        (last; triggers per-test flush + pending delete)
 //
 // Diagnostics fire *after* the corresponding test:pass/test:fail (node:test
-// buffers them), so we accumulate per (file, line, column) and write the
-// sidecar at end-of-stream. With --test-concurrency=1 and one leaf per file
-// (the tier-eval pattern), this collapses to "one write per process at exit",
-// which is what the harness used to do.
+// buffers them), so we accumulate per (file, line, column). The flush model:
+//   - Primary: on `runAgent_done`, flush the pending entry and delete it.
+//     Tightens the SIGTERM-vs-flush window to ~one test's wallclock and
+//     keeps the reporter correct for files with multiple `it(...)` blocks.
+//   - Safety net: an end-of-stream loop flushes whatever's left — Family C
+//     tests (no runAgent → no sentinel, no runDir → header only, no sidecar)
+//     and runAgent calls that threw before emitting the sentinel.
 
 import { writeAssertionResult } from './claw.js';
 import { TIER_LABEL } from './tier.js';
@@ -108,7 +112,13 @@ export default async function* registryReporter(source) {
     else if (parsed.key === 'test_id')  pending.test_id = parsed.value;
     else if (parsed.key === 'agent_result') pending.agent_result = tryJson(parsed.value);
     else if (parsed.key === 'post_result')  pending.post_result  = tryJson(parsed.value);
+    else if (parsed.key === 'runAgent_done') {
+      flush(pending);
+      pendings.delete(locKey(ev.data));
+    }
   }
 
+  // Safety net for entries that never received `runAgent_done` (Family C,
+  // runAgent threw before the sentinel). See header comment.
   for (const pending of pendings.values()) flush(pending);
 }

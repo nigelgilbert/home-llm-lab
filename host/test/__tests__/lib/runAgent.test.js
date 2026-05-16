@@ -163,3 +163,72 @@ describe('runAgent runner invocation', () => {
     assert.equal(calls[0].timeoutMs, 57_000);
   });
 });
+
+describe('runAgent diagnostic emission', () => {
+  function makeTCapture() {
+    const diagnostics = [];
+    const t = {
+      signal: new AbortController().signal,
+      diagnostic: (m) => diagnostics.push(m),
+    };
+    return { t, diagnostics };
+  }
+
+  it('emits runAgent_done=1 as the final diagnostic (reporter flush sentinel)', async () => {
+    const { t, diagnostics } = makeTCapture();
+    await runAgent({
+      ...BASE,
+      clawTimeoutMs: 60_000,
+      t,
+      runner: makeRunner([]),
+    });
+    assert.equal(diagnostics.at(-1), 'runAgent_done=1');
+  });
+
+  it('skips runDir diagnostic and logs to stderr when runner returns no runDir', async () => {
+    // Models the claw.js telemetry-hiccup path where collectRunArtifacts
+    // throws and `extras` stays { runId } with no runDir. Without the guard,
+    // runAgent would emit `runDir=undefined` and the reporter would attempt
+    // to write to a path called "undefined".
+    const { t, diagnostics } = makeTCapture();
+    const origErr = console.error;
+    let stderrCaptured = '';
+    console.error = (m) => { stderrCaptured += m + '\n'; };
+    try {
+      await runAgent({
+        ...BASE,
+        clawTimeoutMs: 60_000,
+        t,
+        runner: async () => ({ code: 0, stdout: '', stderr: '', elapsedMs: 0 }),
+      });
+    } finally {
+      console.error = origErr;
+    }
+    assert.equal(diagnostics.some((d) => d.startsWith('runDir=')), false);
+    assert.match(stderrCaptured, /no runDir from runner/);
+    // The rest of the diagnostic stream still flows; sentinel must still land
+    // so the reporter flushes a (sidecar-less) pending and prints the header.
+    assert.equal(diagnostics.at(-1), 'runAgent_done=1');
+  });
+});
+
+describe('runAgent at-most-once per TestContext', () => {
+  it('throws on a second call with the same `t`', async () => {
+    const t = makeT();
+    await runAgent({
+      ...BASE,
+      clawTimeoutMs: 60_000,
+      t,
+      runner: makeRunner([]),
+    });
+    await assert.rejects(
+      () => runAgent({
+        ...BASE,
+        clawTimeoutMs: 60_000,
+        t,
+        runner: makeRunner([]),
+      }),
+      /at most one call per/,
+    );
+  });
+});

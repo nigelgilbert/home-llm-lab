@@ -134,6 +134,51 @@ describe('registryReporter (synthetic event stream)', () => {
     assert.equal(fs.existsSync(path.join(runDir, 'assertion_result.json')), false);
   });
 
+  it('flushes per-test on runAgent_done sentinel (sidecar A lands before B drains)', async () => {
+    const runDirA = makeRunDir();
+    const runDirB = makeRunDir();
+    const la = loc('/fake/file.test.js', 80, 3);
+    const lb = loc('/fake/file.test.js', 90, 3);
+
+    let sidecarAExistedMidStream = false;
+    const events = [
+      passEv(la, 'test-a'),
+      diag(la, `runDir=${runDirA}`),
+      diag(la, 'test_id=test-a'),
+      diag(la, `agent_result=${JSON.stringify({ code: 0, elapsedMs: 1, files: [] })}`),
+      diag(la, 'runAgent_done=1'),
+      passEv(lb, 'test-b'),
+      diag(lb, `runDir=${runDirB}`),
+      diag(lb, 'test_id=test-b'),
+      diag(lb, `agent_result=${JSON.stringify({ code: 0, elapsedMs: 1, files: [] })}`),
+      diag(lb, 'runAgent_done=1'),
+    ];
+
+    // Source observes sidecar A's existence right after the reporter
+    // processes A's runAgent_done — i.e. before B's events have drained.
+    async function* checkingSource() {
+      for (const ev of events) {
+        yield ev;
+        if (ev.type === 'test:diagnostic'
+            && ev.data.line === la.line
+            && ev.data.message === 'runAgent_done=1') {
+          sidecarAExistedMidStream = fs.existsSync(path.join(runDirA, 'assertion_result.json'));
+        }
+      }
+    }
+
+    const orig = console.log;
+    console.log = () => {};
+    try {
+      for await (const _ of registryReporter(checkingSource())) { /* */ }
+    } finally {
+      console.log = orig;
+    }
+
+    assert.equal(sidecarAExistedMidStream, true, 'sidecar A must exist after its runAgent_done, before B drains');
+    assert.equal(fs.existsSync(path.join(runDirB, 'assertion_result.json')), true);
+  });
+
   it('distinguishes two tests by file:line:column and writes the correct sidecar to each', async () => {
     const runDirA = makeRunDir();
     const runDirB = makeRunDir();

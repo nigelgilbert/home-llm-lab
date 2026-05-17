@@ -25,9 +25,20 @@
 //   - Primary: on `runAgent_done`, flush the pending entry and delete it.
 //     Tightens the SIGTERM-vs-flush window to ~one test's wallclock and
 //     keeps the reporter correct for files with multiple `it(...)` blocks.
-//   - Safety net: an end-of-stream loop flushes whatever's left — Family C
-//     tests (no runAgent → no sentinel, no runDir → header only, no sidecar)
-//     and runAgent calls that threw before emitting the sentinel.
+//   - End-of-stream loop: load-bearing, not paranoid. Flushes two real cases:
+//       (1) Family C / non-runAgent tests — no sentinel by design, runDir
+//           absent, so flush() prints the header and skips sidecar write.
+//       (2) runAgent threw between the agent_result diagnostic and the
+//           sentinel (e.g. postScript spawnSync raised) — runDir + test_id +
+//           agent_result already landed, so the sidecar is written here with
+//           passed=false (from test:fail) and post_status=null. Without this
+//           loop those cells would have no sidecar.
+//     The asymmetry is intentional: runAgent does NOT wrap its body in
+//     try/finally to fire the sentinel on throw, so SIGTERM landing between
+//     a mid-runAgent throw and end-of-stream loses these sidecars. Mid-
+//     runAgent throws are rare (spawn ENOENT-class) and expected-attempts.mjs
+//     --diff catches the resulting missing cells, so the tradeoff is
+//     acceptable. Don't "fix" by adding try/finally without revisiting this.
 
 import { writeAssertionResult } from './claw.js';
 import { TIER_LABEL } from './tier.js';
@@ -118,7 +129,10 @@ export default async function* registryReporter(source) {
     }
   }
 
-  // Safety net for entries that never received `runAgent_done` (Family C,
-  // runAgent threw before the sentinel). See header comment.
+  // Load-bearing flush for entries that never received `runAgent_done`:
+  // Family C (no sentinel by design) and runAgent throws between
+  // agent_result and the sentinel (sidecar still gets written from the
+  // diagnostics that landed pre-throw). See header comment for the SIGTERM
+  // tradeoff this accepts.
   for (const pending of pendings.values()) flush(pending);
 }
